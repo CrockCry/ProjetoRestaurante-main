@@ -1,8 +1,8 @@
 import * as React from 'react';
-    import React, {useState} from 'react';
-import { Modal } from 'react-native-modal';
-import axios from 'axios'; 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+//     import React, {useState} from 'react';
+// import { Modal } from 'react-native-modal';
+// import axios from 'axios'; 
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 import Home from './src/pages/home';
@@ -12,7 +12,7 @@ import Senha from './src/pages/senha';
 import Mesa from './src/pages/mesa'
 import mesaAberta from './src/pages/mesa/mesaAberta';
 import addMesa from './src/pages/mesa/addMesa';
-import Funcionario from './src/pages/Funcionario/index'
+import Funcionario from './src/pages/Funcionario/index' 
 import Menu from './src/pages/Menu'
 import Add from './src/pages/Funcionario/add'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -29,7 +29,9 @@ import { Entypo, Feather, FontAwesome } from '@expo/vector-icons';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function MyTabs(route) {
+function MyTabs({ route }) {
+  const { idFuncionario } = route.params || {};
+
   return (
     <Tab.Navigator
       initialRouteName='Home'
@@ -61,7 +63,7 @@ function MyTabs(route) {
       <Tab.Screen
         name='Home'
         component={Home}
-        initialParams={{idFuncionario: route.params,idFuncionario}}
+        initialParams={{ idFuncionario }}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Entypo name="home" size={size} color={color} />
@@ -92,14 +94,15 @@ function MyTabs(route) {
 
 
 
-export default function App(props) {
+
+export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Senha" component={Senha} />
         <Stack.Screen name="Inicio" component={Home} />
-        <Stack.Screen name="Home" component={MyTabs} initialParams={{idFuncionario: route.params,idFuncionario}} />
+        <Stack.Screen name="Home" component={MyTabs} />
         <Stack.Screen name="Add" component={Add} />
         <Stack.Screen name="mesaAberta" component={mesaAberta} />
         <Stack.Screen name="addMesa" component={addMesa} />
@@ -107,4 +110,5 @@ export default function App(props) {
     </NavigationContainer>
   );
 }
+
 

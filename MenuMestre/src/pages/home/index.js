@@ -1,19 +1,54 @@
-import * as React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, TextInput, ImageBackground, ScrollView } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import { View, Text, Image, StyleSheet, ImageBackground, ScrollView } from 'react-native';
 
-export default function Home({ navigation }) {
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+
+export default function Home({ navigation, route }) {
+  const { idFuncionario } = route.params || {};
+
+  console.log("Cód Funcionario: ", idFuncionario);
+  console.log(route.params);
+
+  const [nomeFuncionario, setNomeFuncionario] = useState("");
+  const [cargoFuncionario, cargo] = useState("");
+
+  useEffect(() => {
+    const fetchFuncionarioData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        const resposta = await axios.get(`http://127.0.0.1:8000/api/funcionario/${idFuncionario}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+        setNomeFuncionario(resposta.data.nomeFuncionario);
+        cargo(resposta.data.cargo);
+        console.log(resposta.data);
+      } catch (error) {
+        console.error("Erro ao buscar dados do funcionário", error);
+      }
+    };
+    if (idFuncionario) {
+      fetchFuncionarioData();
+    }
+  }, [idFuncionario]);
+
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-around' }}>
 
       <View style={{ backgroundColor: 'grey', width: '100%', height: 60, justifyContent: 'space-around', alignItems: 'center', flexDirection: 'row' }}>
         <Image source={require('../../../assets/perfil.png')} style={{ width: 50, height: 50 }} />
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Usuario</Text>
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Função</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{nomeFuncionario}</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{cargoFuncionario}</Text>
       </View>
 
       <ImageBackground source={require('../../../assets/background.png')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', width: '100%' }}  >
         <ScrollView>
-          <Text style={styles.text}>Seja bem vindo Usuario</Text>
+          <Text style={styles.text}>Seja bem vindo {nomeFuncionario}</Text>
           <Text style={styles.Title}>Home</Text>
 
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'space-around' }}>
