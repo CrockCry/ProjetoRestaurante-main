@@ -4,7 +4,7 @@ import { View, Text, Image, StyleSheet, ImageBackground, ScrollView } from 'reac
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
+// teste
 
 export default function Home({ navigation, route }) {
   const { idFuncionario } = route.params || {};
