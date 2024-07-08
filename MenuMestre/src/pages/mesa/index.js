@@ -1,16 +1,43 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ImageBackground, SafeAreaView, ScrollView, Modal, Alert, Pressable, TextInput } from 'react-native';
-import mesaAberta from './mesaAberta';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ImageBackground, SafeAreaView, ScrollView, Modal, Alert, Pressable } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Perfil({ navigation }) {
-  const mesaAberta = () => {
-    navigation.navigate('mesaAberta');
+  const [mesas, setMesas] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [capacity, setCapacity] = useState(null);
+
+  useEffect(() => {
+    fetchMesas();
+  }, []);
+
+  const fetchMesas = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      const response = await fetch("http://127.0.0.1:8000/api/mesa", {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar mesas: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setMesas(data);
+    } catch (error) {
+      console.error("Erro ao buscar mesas:", error);
+    }
   };
 
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [price, setPrice] = useState('');
-  const [capacity, setCapacity] = useState(null);
+  const mesaAberta = (mesaId) => {
+    navigation.navigate('mesaAberta', { mesaId });
+  };
 
   const renderCapacityButtons = () => {
     return [...Array(10).keys()].map(i => (
@@ -66,9 +93,25 @@ export default function Perfil({ navigation }) {
                         </Pressable>
                         <Pressable
                           style={[styles.button, styles.buttonAdd]}
-                          onPress={() => {
-                            // Adicionar ação aqui para salvar a mesa
-                            setModalVisible(!modalVisible);
+                          onPress={async () => {
+                            try {
+                              const token = await AsyncStorage.getItem('userToken');
+                              await fetch("http://127.0.0.1:8000/api/mesas", {
+                                method: 'POST',
+                                headers: {
+                                  'Authorization': `Bearer ${token}`,
+                                  'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                  capacidade: capacity,
+                                }),
+                              });
+
+                              fetchMesas(); // Atualiza a lista de mesas
+                              setModalVisible(!modalVisible);
+                            } catch (error) {
+                              console.error("Erro ao adicionar mesa:", error);
+                            }
                           }}
                         >
                           <Text style={styles.buttonText}>Adicionar</Text>
@@ -83,48 +126,21 @@ export default function Perfil({ navigation }) {
                 </Pressable>
               </View>
 
-              <View style={styles.tableCard}>
-                <View style={styles.tableContent}>
-                  <Text style={styles.tableNumber}>Mesa 1</Text>
-                  <View style={{ flexDirection: 'row' }}>
-                    <Text style={styles.tableCapacity}>Max: 2</Text>
-                    <Image source={require('../../../assets/user.png')} style={styles.people} />
+              {mesas.map(mesa => (
+                <View key={mesa.id} style={styles.tableCard}>
+                  <View style={styles.tableContent}>
+                    <Text style={styles.tableNumber}>Mesa {mesa.numero}</Text>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Text style={styles.tableCapacity}>Max: {mesa.capacidade}</Text>
+                      <Image source={require('../../../assets/user.png')} style={styles.people} />
+                    </View>
+                    <Text style={styles.foodPrice}>{mesa.produtos ? `${mesa.produtos.length}/${mesa.capacidade}` : `0/${mesa.capacidade}`}</Text>
                   </View>
-                  <Text style={styles.foodPrice}>0/2</Text>
+                  <TouchableOpacity style={styles.editButton} onPress={() => mesaAberta(mesa.id)}>
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity style={styles.editButton} onPress={mesaAberta}>
-                  <Text style={styles.editButtonText}>Editar</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.tableCard}>
-                <View style={styles.tableContent}>
-                  <Text style={styles.tableNumber}>Mesa 2</Text>
-                  <View style={{ flexDirection: 'row' }}>
-                    <Text style={styles.tableCapacity}>Max: 4</Text>
-                    <Image source={require('../../../assets/user.png')} style={styles.people} />
-                  </View>
-                  <Text style={styles.foodPrice}>0/4</Text>
-                </View>
-                <TouchableOpacity style={styles.editButton}>
-                  <Text style={styles.editButtonText}>Editar</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.tableCard}>
-                <View style={styles.tableContent}>
-                  <Text style={styles.tableNumber}>Mesa 3</Text>
-                  <View style={{ flexDirection: 'row' }}>
-                    <Text style={styles.tableCapacity}>Max: 8</Text>
-                    <Image source={require('../../../assets/user.png')} style={styles.people} />
-                  </View>
-                  <Text style={styles.foodPrice}>0/8</Text>
-                </View>
-                <TouchableOpacity style={styles.editButton}>
-                  <Text style={styles.editButtonText}>Editar</Text>
-                </TouchableOpacity>
-              </View>
-
+              ))}
             </View>
           </View>
         </ScrollView>
@@ -132,7 +148,6 @@ export default function Perfil({ navigation }) {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,

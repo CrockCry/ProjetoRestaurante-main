@@ -1,232 +1,237 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Modal, Button } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  Picker,
+} from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function addMesa({ navigation }) {
-  const [modalVisible, setModalVisible] = useState(false);
+export default function AddMesa({ navigation }) {
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
-  const [items, setItems] = useState([
-    { id: 1, name: 'Produto 1', category: 'bebidas', price: 25.99, quantity: 0 },
-    { id: 2, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    { id: 3, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    { id: 4, name: 'Produto 2', category: 'bebidas', price: 25.99, quantity: 0 },
-    { id: 5, name: 'Produto 2', category: 'sobremesas', price: 25.99, quantity: 0 },
-    { id: 6, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    { id: 7, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    { id: 8, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    { id: 9, name: 'Produto 2', category: 'sobremesas', price: 25.99, quantity: 0 },
-    { id: 10, name: 'Produto 2', category: 'sobremesas', price: 25.99, quantity: 0 },
-    { id: 11, name: 'Produto 2', category: 'massas', price: 25.99, quantity: 0 },
-    { id: 12, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    { id: 13, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    { id: 14, name: 'Produto 2', category: 'massas', price: 25.99, quantity: 0 },
-    { id: 15, name: 'Produto 2', category: 'carnes', price: 25.99, quantity: 0 },
-    // Adicione mais produtos conforme necessário
-  ]);
+  const [selectedCategory, setSelectedCategory] = useState('todos');
+  const [quantities, setQuantities] = useState({});
 
-  const [filteredItems, setFilteredItems] = useState(items);
+  useEffect(() => {
+    fetchProdutos();
+  }, []);
 
-  const handleSearch = (text) => {
-    setSearchText(text);
-    if (text === '') {
-      setFilteredItems(items);
-    } else {
-      setFilteredItems(items.filter(item => item.name.toLowerCase().includes(text.toLowerCase())));
+  useEffect(() => {
+    filterItems();
+  }, [searchText, selectedCategory, items]);
+
+  const fetchProdutos = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      console.log("Token de autenticação:", token);
+
+      const response = await fetch("http://127.0.0.1:8000/api/cardapio", {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log("Status da resposta:", response.status);
+      
+      if (!response.ok) {
+        throw new Error("Erro ao buscar produtos");
+      }
+
+      const data = await response.json();
+      console.log("Dados recebidos da API:", data);
+
+      if (Array.isArray(data) && data.length > 0) {
+        setItems(data.map((item, index) => ({ ...item, id: item.id || index })));
+      } else {
+        setItems([]);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      setLoading(false);
     }
   };
 
-  const handleFilter = (category) => {
-    setFilteredItems(items.filter(item => item.category === category));
-    setModalVisible(false);
+  const filterItems = () => {
+    let filtered = items;
+
+    if (searchText) {
+      filtered = filtered.filter(item =>
+        item.nomeProduto.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    if (selectedCategory && selectedCategory !== 'todos') {
+      filtered = filtered.filter(item => item.categoriaProduto === selectedCategory);
+    }
+
+    setFilteredItems(filtered);
   };
 
-  const incrementQuantity = (id) => {
-    const updatedItems = items.map(item => {
-      if (item.id === id) {
-        return { ...item, quantity: item.quantity + 1 };
+  const handleAddProduct = async (produto) => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const mesaId = 1; // Substitua com o ID da mesa real ou passe o ID como parâmetro
+
+      const quantity = quantities[produto.id] || 1;  // Use 1 se a quantidade não estiver definida
+
+      const response = await fetch(`http://127.0.0.1:8000/api/mesa/${mesaId}/produtos`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          produto_id: produto.id,
+          quantidade: quantity,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Produto adicionado com sucesso!');
+      } else {
+        alert('Erro ao adicionar produto');
       }
-      return item;
-    });
-    setItems(updatedItems);
-    setFilteredItems(updatedItems.filter(item => item.name.toLowerCase().includes(searchText.toLowerCase())));
+    } catch (error) {
+      console.error("Erro ao adicionar produto:", error);
+    }
   };
 
-  const decrementQuantity = (id) => {
-    const updatedItems = items.map(item => {
-      if (item.id === id && item.quantity > 0) {
-        return { ...item, quantity: item.quantity - 1 };
-      }
-      return item;
-    });
-    setItems(updatedItems);
-    setFilteredItems(updatedItems.filter(item => item.name.toLowerCase().includes(searchText.toLowerCase())));
+  const handleQuantityChange = (produtoId, newQuantity) => {
+    setQuantities(prevQuantities => ({
+      ...prevQuantities,
+      [produtoId]: newQuantity,
+    }));
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Carregando...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <TextInput
-        style={styles.searchBox}
-        placeholder="Pesquisar"
+        style={styles.searchInput}
+        placeholder="Pesquisar produtos"
         value={searchText}
-        onChangeText={handleSearch}
+        onChangeText={text => setSearchText(text)}
       />
-      <TouchableOpacity style={styles.filterButton} onPress={() => setModalVisible(true)}>
-        <Ionicons name="filter" size={24} color="white" />
-      </TouchableOpacity>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+      <Picker
+        selectedValue={selectedCategory}
+        style={styles.picker}
+        onValueChange={(itemValue) => setSelectedCategory(itemValue)}
       >
-        <View style={styles.modalView}>
-          <Text style={styles.modalText}>Filtrar por categoria</Text>
-          <Button title="Bebidas" onPress={() => handleFilter('bebidas')} />
-          <Button title="Sobremesas" onPress={() => handleFilter('sobre-mesas')} />
-          <Button title="Carnes" onPress={() => handleFilter('carnes')} />
-          <Button title="Massas" onPress={() => handleFilter('massas')} />
-          <Button title="Fechar" onPress={() => setModalVisible(false)} />
-        </View>
-      </Modal>
+        <Picker.Item label="Todos" value="todos" />
+        <Picker.Item label="Bebidas" value="bebida" />
+        {/* <Picker.Item label="Carnes" value="carnes" /> */}
+        <Picker.Item label="Sobremesas" value="sobremesa" />
+        <Picker.Item label="Massas" value="massa" />
+      </Picker>
 
-      <ScrollView style={styles.table}>
-        <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderText}>N</Text>
-          <Text style={styles.tableHeaderText}>Item</Text>
-          <Text style={styles.tableHeaderText}>Add</Text>
-          <Text style={styles.tableHeaderText}>R$</Text>
-        </View>
-        {filteredItems.map((item, index) => (
-          <View key={item.id} style={styles.tableRow}>
-            <Text style={styles.tableCell}>{index + 1}</Text>
-            <Text style={styles.tableCell}>{item.name}</Text>
-            <View style={styles.addControl}>
-              <TouchableOpacity onPress={() => decrementQuantity(item.id)}>
-                <Text style={styles.controlButton}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.quantityText}>{item.quantity}</Text>
-              <TouchableOpacity onPress={() => incrementQuantity(item.id)}>
-                <Text style={styles.controlButton}>+</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.tableCell}>{item.price.toFixed(2)}</Text>
+      <FlatList
+        data={filteredItems}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <Text>{item.nomeProduto}</Text>
+            <Text>Preço: R$ {item.valorProduto}</Text>
+            <TextInput
+              style={styles.quantityInput}
+              keyboardType='numeric'
+              value={quantities[item.id]?.toString() || '1'}
+              onChangeText={(text) => handleQuantityChange(item.id, parseInt(text) || 1)}
+            />
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => handleAddProduct(item)}
+            >
+              <Text style={styles.addButtonText}>Adicionar</Text>
+            </TouchableOpacity>
           </View>
-        ))}
-      </ScrollView>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Voltar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.addButtonText}>Adicionar</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        )}
+      />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.backButtonText}>Voltar</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1c1c1c',
+    backgroundColor: "#fff",
     padding: 20,
-    alignItems: 'center',
   },
-  searchBox: {
-    backgroundColor: '#FFF',
+  searchInput: {
+    height: 40,
+    borderColor: "#ddd",
+    borderWidth: 1,
     borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-    width: '80%',
-    fontSize: 18,
-  },
-  filterButton: {
-    position: 'absolute',
-    right: 20,
-    top: 20,
-  },
-  table: {
-    backgroundColor: '#FFF',
-    borderRadius: 5,
-    width: '100%',
-    marginBottom: 20,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#CCC',
-    padding: 10,
-  },
-  tableHeaderText: {
-    flex: 1,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 18,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
-    padding: 10,
-  },
-  tableCell: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-  },
-  addControl: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flex: 1,
-  },
-  controlButton: {
-    fontSize: 20,
     paddingHorizontal: 10,
-    color: '#000',
+    marginBottom: 10,
   },
-  quantityText: {
-    fontSize: 18,
-    marginHorizontal: 10,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  picker: {
+    height: 50,
     width: '100%',
+    marginBottom: 10,
+  },
+  item: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  quantityInput: {
+    height: 40,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    width: 60,
+    textAlign: 'center',
+  },
+  addButton: {
+    backgroundColor: "#008CBA",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  addButtonText: {
+    color: "#fff",
+    textAlign: "center",
   },
   backButton: {
     backgroundColor: '#BBB',
     padding: 10,
     borderRadius: 5,
-    width: '45%',
-  },
-  addButton: {
-    backgroundColor: '#FFC107',
-    padding: 10,
-    borderRadius: 5,
-    width: '45%',
+    marginTop: 20,
+    alignItems: 'center',
   },
   backButtonText: {
     color: '#000',
     textAlign: 'center',
     fontSize: 18,
-  },
-  addButtonText: {
-    color: '#FFF',
-    textAlign: 'center',
-    fontSize: 18,
-  },
-  modalView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalText: {
-    marginBottom: 20,
-    fontSize: 20,
-    color: '#FFF',
   },
 });

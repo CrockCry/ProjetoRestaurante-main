@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,40 @@ import {
   ImageBackground,
 } from "react-native";
 
-export default function mesaAberta({ navigation }) {
+export default function MesaAberta({ navigation }) {
+  const [produtos, setProdutos] = useState([]);
+  const [mesa, setMesa] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMesaProdutos();
+  }, []);
+
+  const fetchMesaProdutos = async () => {
+    try {
+      const response = await fetch("http://seu-servidor/api/mesas/3");
+      const data = await response.json();
+      setMesa(data.mesa);
+      setProdutos(data.produtos);
+      setLoading(false);
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      setLoading(false);
+    }
+  };
+
   const addMesa = () => {
     navigation.navigate("addMesa");
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Carregando...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View
@@ -46,9 +76,9 @@ export default function mesaAberta({ navigation }) {
       >
         <Text style={styles.header}>Produtos a mesa</Text>
         <View style={styles.card}>
-          <Text style={styles.title}>Mesa 3 - Ocupada</Text>
+          <Text style={styles.title}>Mesa {mesa.numero_mesa} - {mesa.status}</Text>
           <Text style={styles.subtitle}>
-            3/4{" "}
+            {mesa.pessoas_sentadas}/{mesa.capacidade}{" "}
             <Image
               source={require("../../../assets/user.png")}
               style={{ width: 16, height: 16 }}
@@ -59,12 +89,20 @@ export default function mesaAberta({ navigation }) {
           </TouchableOpacity>
           <Text style={styles.sectionTitle}>Produtos</Text>
           <View style={styles.productsBox}>
-            <Text>Mesa vazia</Text>
+            {produtos.length === 0 ? (
+              <Text>Mesa vazia</Text>
+            ) : (
+              produtos.map((produto, index) => (
+                <View key={index} style={styles.productItem}>
+                  <Text>{produto.produto.nomeProduto} - {produto.quantidade}</Text>
+                </View>
+              ))
+            )}
           </View>
-          <Text style={styles.totalText}>Total da mesa: R$ 0,00</Text>
+          <Text style={styles.totalText}>Total da mesa: R$ {mesa.total}</Text>
           <Text style={styles.serviceText}>Serviço de mesa: 10%</Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.billButton} >
+            <TouchableOpacity style={styles.billButton}>
               <Text style={styles.billButtonText}>Conta</Text>
             </TouchableOpacity>
             <TouchableOpacity
