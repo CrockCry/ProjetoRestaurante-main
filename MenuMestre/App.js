@@ -93,7 +93,7 @@ function MyTabs({ route }) {
 }
 
 
-
+  
 
 export default function App() {
   return (
@@ -104,7 +104,7 @@ export default function App() {
         <Stack.Screen name="Inicio" component={Home} />
         <Stack.Screen name="Home" component={MyTabs} />
         <Stack.Screen name="Add" component={Add} />
-        <Stack.Screen name="mesaAberta" component={mesaAberta} />
+        <Stack.Screen name="MesaAberta" component={mesaAberta} />
         <Stack.Screen name="addMesa" component={addMesa} />
       </Stack.Navigator>
     </NavigationContainer>

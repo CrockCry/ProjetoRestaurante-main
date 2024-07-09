@@ -2,39 +2,69 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
   TouchableOpacity,
   SafeAreaView,
   Image,
   ImageBackground,
+  StyleSheet
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';  // Importação do AsyncStorage
 
-export default function MesaAberta({ navigation }) {
+export default function MesaAberta({ route, navigation }) {
+  const { mesaId } = route.params || {};
+  console.log("mesaId recebido:", mesaId);  // Verificar se mesaId está disponível
   const [produtos, setProdutos] = useState([]);
   const [mesa, setMesa] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMesaProdutos();
-  }, []);
+    if (mesaId) {
+      fetchMesaProdutos();
+      // Atualiza a cada 5 segundos
+      const intervalId = setInterval(fetchMesaProdutos, 5000);
+      return () => clearInterval(intervalId);  // Limpa o intervalo ao desmontar
+    } else {
+      console.error("mesaId não está disponível");
+      setLoading(false);
+    }
+  }, [mesaId]);
 
   const fetchMesaProdutos = async () => {
     try {
-      const response = await fetch("http://seu-servidor/api/mesas/3");
+      if (!mesaId) {
+        throw new Error("ID da mesa não está disponível.");
+      }
+
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      const response = await fetch(`http://127.0.0.1:8000/api/mesa/${mesaId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na resposta: ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log("Dados recebidos:", data);
       setMesa(data.mesa);
       setProdutos(data.produtos);
-      setLoading(false);
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
+    } finally {
       setLoading(false);
     }
   };
 
   const addMesa = () => {
-    navigation.navigate("addMesa");
+    navigation.navigate("AddMesa", { mesaId: mesa.id });
   };
 
   if (loading) {

@@ -67,7 +67,7 @@ export default function Perfil({ navigation }) {
       const response = await fetch(
         `http://127.0.0.1:8000/api/mesa/${mesa.id}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -126,7 +126,7 @@ export default function Perfil({ navigation }) {
       console.log("Dados enviados na requisição:", body);
   
       const response = await fetch(`http://127.0.0.1:8000/api/mesa/${selectedMesa.id}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -147,7 +147,9 @@ export default function Perfil({ navigation }) {
       console.log("Número de pessoas atualizadas:", numPessoas);
   
       // Navegue para a página de mesaAberta com os dados da mesa
-      navigation.navigate('mesaAberta', { mesa: selectedMesa });
+      navigation.navigate('mesaAberta', { mesaId: selectedMesa.id });
+
+      
   
     } catch (error) {
       console.error("Erro ao atualizar pessoas sentadas:", error);

@@ -11,13 +11,16 @@ import {
 } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function AddMesa({ navigation }) {
+export default function AddMesa({ route, navigation }) {
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [quantities, setQuantities] = useState({});
+
+  // Recebe o mesaId da rota
+  const { mesaId } = route.params || {};
 
   useEffect(() => {
     fetchProdutos();
@@ -34,22 +37,17 @@ export default function AddMesa({ navigation }) {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      console.log("Token de autenticação:", token);
-
       const response = await fetch("http://127.0.0.1:8000/api/cardapio", {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      console.log("Status da resposta:", response.status);
-      
       if (!response.ok) {
         throw new Error("Erro ao buscar produtos");
       }
 
       const data = await response.json();
-      console.log("Dados recebidos da API:", data);
 
       if (Array.isArray(data) && data.length > 0) {
         setItems(data.map((item, index) => ({ ...item, id: item.id || index })));
@@ -82,10 +80,13 @@ export default function AddMesa({ navigation }) {
   const handleAddProduct = async (produto) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const mesaId = 1; // Substitua com o ID da mesa real ou passe o ID como parâmetro
-
-      const quantity = quantities[produto.id] || 1;  // Use 1 se a quantidade não estiver definida
-
+      if (!mesaId) {
+        alert('ID da mesa não encontrado.');
+        return;
+      }
+  
+      const quantity = quantities[produto.id] || 1;
+  
       const response = await fetch(`http://127.0.0.1:8000/api/mesa/${mesaId}/produtos`, {
         method: 'POST',
         headers: {
@@ -97,9 +98,10 @@ export default function AddMesa({ navigation }) {
           quantidade: quantity,
         }),
       });
-
+  
       if (response.ok) {
         alert('Produto adicionado com sucesso!');
+        navigation.navigate('mesaAberta', { mesaId });  // Navega para MesaAberta passando a mesaId
       } else {
         alert('Erro ao adicionar produto');
       }
@@ -107,7 +109,7 @@ export default function AddMesa({ navigation }) {
       console.error("Erro ao adicionar produto:", error);
     }
   };
-
+  
   const handleQuantityChange = (produtoId, newQuantity) => {
     setQuantities(prevQuantities => ({
       ...prevQuantities,
