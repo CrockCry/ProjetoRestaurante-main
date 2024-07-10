@@ -12,9 +12,10 @@ import Senha from './src/pages/senha';
 import Mesa from './src/pages/mesa'
 import mesaAberta from './src/pages/mesa/mesaAberta';
 import addMesa from './src/pages/mesa/addMesa';
-import Funcionario from './src/pages/Funcionario/index' 
-import Menu from './src/pages/Menu'
-import Add from './src/pages/Funcionario/add'
+import Conta from './src/pages/mesa/Conta';
+import Funcionario from './src/pages/Funcionario/index';
+import Menu from './src/pages/Menu';
+import Add from './src/pages/Funcionario/add';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Ionicons } from '@expo/vector-icons';
 import 'react-native-gesture-handler'
@@ -105,7 +106,8 @@ export default function App() {
         <Stack.Screen name="Home" component={MyTabs} />
         <Stack.Screen name="Add" component={Add} />
         <Stack.Screen name="MesaAberta" component={mesaAberta} />
-        <Stack.Screen name="addMesa" component={addMesa} />
+        <Stack.Screen name="AddMesa" component={addMesa} />
+        <Stack.Screen name="Conta" component={Conta} />
       </Stack.Navigator>
     </NavigationContainer>
   );

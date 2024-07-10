@@ -84,9 +84,9 @@ export default function AddMesa({ route, navigation }) {
         alert('ID da mesa não encontrado.');
         return;
       }
-  
+
       const quantity = quantities[produto.id] || 1;
-  
+
       const response = await fetch(`http://127.0.0.1:8000/api/mesa/${mesaId}/produtos`, {
         method: 'POST',
         headers: {
@@ -98,10 +98,10 @@ export default function AddMesa({ route, navigation }) {
           quantidade: quantity,
         }),
       });
-  
+
       if (response.ok) {
         alert('Produto adicionado com sucesso!');
-        navigation.navigate('mesaAberta', { mesaId });  // Navega para MesaAberta passando a mesaId
+        navigation.navigate('MesaAberta', { mesaId });  // Navega para MesaAberta passando a mesaId
       } else {
         alert('Erro ao adicionar produto');
       }
@@ -109,7 +109,7 @@ export default function AddMesa({ route, navigation }) {
       console.error("Erro ao adicionar produto:", error);
     }
   };
-  
+
   const handleQuantityChange = (produtoId, newQuantity) => {
     setQuantities(prevQuantities => ({
       ...prevQuantities,
@@ -141,7 +141,6 @@ export default function AddMesa({ route, navigation }) {
       >
         <Picker.Item label="Todos" value="todos" />
         <Picker.Item label="Bebidas" value="bebida" />
-        {/* <Picker.Item label="Carnes" value="carnes" /> */}
         <Picker.Item label="Sobremesas" value="sobremesa" />
         <Picker.Item label="Massas" value="massa" />
       </Picker>
@@ -181,16 +180,14 @@ export default function AddMesa({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    padding: 20,
+    padding: 16,
   },
   searchInput: {
     height: 40,
-    borderColor: "#ddd",
+    borderColor: 'gray',
     borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
     marginBottom: 10,
+    paddingHorizontal: 8,
   },
   picker: {
     height: 50,
@@ -198,42 +195,34 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   item: {
-    padding: 15,
+    padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    borderBottomColor: '#ccc',
   },
   quantityInput: {
     height: 40,
-    borderColor: "#ddd",
+    borderColor: 'gray',
     borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    width: 60,
-    textAlign: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 8,
   },
   addButton: {
-    backgroundColor: "#008CBA",
+    backgroundColor: 'blue',
     padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+    alignItems: 'center',
   },
   addButtonText: {
-    color: "#fff",
-    textAlign: "center",
+    color: 'white',
+    fontWeight: 'bold',
   },
   backButton: {
-    backgroundColor: '#BBB',
+    marginTop: 10,
     padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
+    backgroundColor: 'red',
     alignItems: 'center',
   },
   backButtonText: {
-    color: '#000',
-    textAlign: 'center',
-    fontSize: 18,
+    color: 'white',
+    fontWeight: 'bold',
   },
 });

@@ -108,95 +108,114 @@ export default function Perfil({ navigation }) {
   // confirmar pessoas
   const handleConfirmarPessoas = async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await AsyncStorage.getItem("userToken");
       if (!token) {
         throw new Error("Token de autenticação não encontrado.");
       }
-  
+
       if (numPessoas < 1) {
-        console.error("Número de pessoas deve ser um número maior ou igual a 1.");
+        console.error(
+          "Número de pessoas deve ser um número maior ou igual a 1."
+        );
         return;
       }
-  
+
       const body = {
-        status: 'ocupada',
+        status: "ocupada",
         pessoas_sentadas: numPessoas,
       };
-  
+
       console.log("Dados enviados na requisição:", body);
-  
-      const response = await fetch(`http://127.0.0.1:8000/api/mesa/${selectedMesa.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-  
+
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/mesa/${selectedMesa.id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
       const responseData = await response.json();
-  
+
       if (!response.ok) {
         console.error("Erro na resposta:", responseData);
-        throw new Error(`Erro ao atualizar pessoas sentadas: ${JSON.stringify(responseData.error)}`);
+        throw new Error(
+          `Erro ao atualizar pessoas sentadas: ${JSON.stringify(
+            responseData.error
+          )}`
+        );
       }
-  
+
       // Atualize a mesa localmente após sucesso
-      setSelectedMesa(prevMesa => ({ ...prevMesa, pessoas_sentadas: numPessoas }));
+      setSelectedMesa((prevMesa) => ({
+        ...prevMesa,
+        pessoas_sentadas: numPessoas,
+      }));
       setModalEditVisible(false);
       console.log("Número de pessoas atualizadas:", numPessoas);
-  
-      // Navegue para a página de mesaAberta com os dados da mesa
-      navigation.navigate('mesaAberta', { mesaId: selectedMesa.id });
 
-      
-  
+      // Navegue para a página de mesaAberta com os dados da mesa
+      navigation.navigate("MesaAberta", { mesaId: selectedMesa.id });
     } catch (error) {
       console.error("Erro ao atualizar pessoas sentadas:", error);
     }
   };
-  
+
   const handleCancelar = async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await AsyncStorage.getItem("userToken");
       if (!token) {
         throw new Error("Token de autenticação não encontrado.");
       }
-  
+
       // Atualiza o status da mesa para 'disponível'
       const body = {
-        status: 'disponivel',
-        pessoas_sentadas: 0,  // Zera o número de pessoas sentadas
+        status: "disponivel",
+        pessoas_sentadas: 0, // Zera o número de pessoas sentadas
       };
-  
+
       console.log("Dados enviados na requisição para cancelar:", body);
-  
-      const response = await fetch(`http://127.0.0.1:8000/api/mesa/${selectedMesa.id}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-  
+
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/mesa/${selectedMesa.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
       const responseData = await response.json();
-  
+
       if (!response.ok) {
         console.error("Erro na resposta:", responseData);
-        throw new Error(`Erro ao atualizar o status da mesa: ${JSON.stringify(responseData.error)}`);
+        throw new Error(
+          `Erro ao atualizar o status da mesa: ${JSON.stringify(
+            responseData.error
+          )}`
+        );
       }
-  
+
       // Atualize a mesa localmente após sucesso
-      setSelectedMesa(prevMesa => ({ ...prevMesa, status: 'disponível', pessoas_sentadas: 0 }));
+      setSelectedMesa((prevMesa) => ({
+        ...prevMesa,
+        status: "disponível",
+        pessoas_sentadas: 0,
+      }));
       setModalEditVisible(false);
       console.log("Mesa cancelada e status atualizado para disponível");
-  
     } catch (error) {
       console.error("Erro ao cancelar mesa:", error);
     }
   };
-  
+
   const renderCapacityButtons = () => {
     return [...Array(selectedMesa?.capacidade || 0).keys()].map((i) => (
       <TouchableOpacity
@@ -395,7 +414,7 @@ export default function Perfil({ navigation }) {
               <Pressable
                 style={[styles.button, styles.buttonCancel]}
                 onPress={handleCancelar}
-              > 
+              >
                 <Text style={styles.buttonText}>Cancelar</Text>
               </Pressable>
               <Pressable
