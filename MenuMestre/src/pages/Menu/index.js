@@ -14,10 +14,10 @@ import {
   TextInput,
 } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 export default function Menu({ navigation }) {
-  const token = "174|lLKQgoUQxkxADQtlO66Tz3C8YcMArQiaid3ObLv471c042e4"; // Adicione o token aqui
 
   const [modalVisible, setModalVisible] = useState(false);
   const [dishName, setDishName] = useState("");
@@ -26,24 +26,34 @@ export default function Menu({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
   const [products, setProducts] = useState([]);
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   // Função para buscar produtos da API
   const fetchProducts = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/cardapio", {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      const response = await fetch("http://127.0.0.1:8000/api/cardapio", {
         headers: {
-          Authorization: `Bearer ${token}`, // Inclua o token de autenticação
+          Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar produtos: ${response.statusText}`);
+      }
       console.log("Resposta da API:", response.data);
-      setProducts(response.data);
+      const data = await response.json();
+      setProducts(data);
     } catch (error) {
       console.error("Erro ao buscar produtos:", error.message);
     }
   };
-
-  useEffect(() => {
-    fetchProducts(); // Atualiza a lista de produtos ao montar o componente
-  }, []); // O array vazio significa que o efeito será executado apenas na montagem do componente
 
   const selectImage = () => {
     const options = {
@@ -170,6 +180,9 @@ export default function Menu({ navigation }) {
                           style={[styles.button, styles.buttonAdd]}
                           onPress={async () => {
                             try {
+                              const token = await AsyncStorage.getItem(
+                                "userToken"
+                              );
                               const formData = new FormData();
                               formData.append("nomeProduto", dishName);
                               formData.append("descricaoProduto", description);
@@ -184,13 +197,11 @@ export default function Menu({ navigation }) {
                                   name: `photo.${fileType}`,
                                 });
                               }
-                              await axios.post(
-                                "http://127.0.0.1:8000/api/cardapio",
-                                formData,
-                                {
-                                  headers: {
-                                    "Content-Type": "multipart/form-data",
-                                    Authorization: `Bearer ${token}`, // Adicione o token de autenticação
+                              await fetch("http://127.0.0.1:8000/api/cardapio", {
+                                method: "POST",
+                                headers: {
+                                  Authorization: `Bearer ${token}`,
+                                  "Content-Type": "application/json", // Adicione o token de autenticação
                                   },
                                 }
                               );

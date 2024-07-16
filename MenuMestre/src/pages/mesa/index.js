@@ -48,6 +48,9 @@ export default function Perfil({ navigation }) {
     } catch (error) {
       console.error("Erro ao buscar mesas:", error);
     }
+
+    const intervalId = setInterval(fetchMesas, 5000);
+    return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar
   };
 
   const handleEditarMesa = async (mesa) => {
@@ -183,7 +186,7 @@ export default function Perfil({ navigation }) {
       const response = await fetch(
         `http://127.0.0.1:8000/api/mesa/${selectedMesa.id}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -353,7 +356,7 @@ export default function Perfil({ navigation }) {
               {mesas.map((mesa) => (
                 <View key={mesa.id} style={styles.tableCard}>
                   <View style={styles.tableContent}>
-                    <Text style={styles.tableNumber}>Mesa {mesa.numero}</Text>
+                    <Text style={styles.tableNumber}>Mesa {mesa.numero} - {mesa.status}</Text>
                     <View style={{ flexDirection: "row" }}>
                       <Text style={styles.tableCapacity}>
                         Max: {mesa.capacidade}
