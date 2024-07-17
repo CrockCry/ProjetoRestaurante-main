@@ -53,7 +53,7 @@ export default function Login({ navigation }) {
       <ImageBackground
         source={require("../../../assets/background2.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}>
         
-        <Image style={styles.imgLogo} source={require("../../../assets/logo.png")}/>
+        <Image style={{ alignItems: "center", justifyContent: "center", width: "200px", height:"80px"}} source={require("../../../assets/MM-Logo-white.svg")}/>
         <Text style={styles.text}>Bem-vindo</Text>
 
         <TextInput
@@ -98,10 +98,6 @@ export default function Login({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  imgLogo: {
-    width: 100,
-    height: 100,
-  },
 
   container: {
     flex: 1,

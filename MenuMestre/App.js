@@ -43,15 +43,7 @@ function MyTabs({ route }) {
         tabBarInactiveTintColor: '#888',
       }}
     >
-      <Tab.Screen
-        name='Funcionario'
-        component={Funcionario}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size} color={color} />
-          ),
-        }}
-      />
+      
       <Tab.Screen
         name='Mesa'
         component={Mesa}
@@ -80,15 +72,7 @@ function MyTabs({ route }) {
           ),
         }}
       />
-      <Tab.Screen
-        name='Mensagens'
-        component={Mensagem}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Entypo name="message" size={size} color={color} />
-          ),
-        }}
-      />
+
     </Tab.Navigator>
   );
 }

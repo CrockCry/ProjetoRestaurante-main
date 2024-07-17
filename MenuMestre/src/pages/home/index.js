@@ -15,15 +15,19 @@ export default function Home({ navigation, route }) {
 
   const [nomeFuncionario, setNomeFuncionario] = useState("");
   const [cargoFuncionario, setCargoFuncionario] = useState("");
-  const [relatorioDiario, setRelatorioDiario] = useState({});
-  const [mesasDisponiveis, setMesasDisponiveis] = useState(0);
-  const [totalItensMenu, setTotalItensMenu] = useState(0);
+  const [dadosVendas, setDadosVendas] = useState({
+    totalFaturado: 0,
+    totalVendido: 0,
+    numPedidos: 0,
+    numMesasAtendidas: 0,
+  });
+  const [totalMesasDisponiveis, setTotalMesasDisponiveis] = useState(0);
+  const [totalPratos, setTotalPratos] = useState(0);
 
   useEffect(() => {
     const fetchFuncionarioData = async () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
-        if (!token) throw new Error("Token de autenticação não encontrado.");
         const resposta = await axios.get(
           `http://127.0.0.1:8000/api/funcionario/${idFuncionario}`,
           {
@@ -34,70 +38,51 @@ export default function Home({ navigation, route }) {
         );
         setNomeFuncionario(resposta.data.nomeFuncionario);
         setCargoFuncionario(resposta.data.cargo);
+        console.log(resposta.data);
       } catch (error) {
-        console.error("Erro ao buscar dados do funcionário:", error.message);
+        console.error("Erro ao buscar dados do funcionário", error);
       }
     };
 
-    const fetchRelatorioDiario = async () => {
+    const fetchDadosVendas = async () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
-        if (!token) throw new Error("Token de autenticação não encontrado.");
         const resposta = await axios.get(
-          `http://127.0.0.1:8000/api/funcionario/relatorioDiario`,
+          `http://127.0.0.1:8000/api/funcionario/vendas/${idFuncionario}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        setRelatorioDiario(resposta.data);
+        setDadosVendas(resposta.data.funcionario);
       } catch (error) {
-        console.error("Erro ao buscar relatório diário:", error.message);
+        console.error("Erro ao buscar dados de vendas do funcionário", error);
       }
     };
 
-    const fetchMesasDisponiveis = async () => {
+    const fetchDashboardData = async () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
-        if (!token) throw new Error("Token de autenticação não encontrado.");
-        const response = await axios.get(
-          "http://127.0.0.1:8000/api/mesa/disponiveis",
+        const resposta = await axios.get(
+          `http://127.0.0.1:8000/api/dashboard`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        setMesasDisponiveis(response.data.mesasDisponiveis);
+        setTotalMesasDisponiveis(resposta.data.totalMesas);
+        setTotalPratos(resposta.data.totalPratos);
       } catch (error) {
-        console.error("Erro ao buscar mesas disponíveis:", error.message);
-      }
-    };
-
-    const fetchItensMenu = async () => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        if (!token) throw new Error("Token de autenticação não encontrado.");
-        const response = await axios.get(
-          "http://127.0.0.1:8000/api/cardapio/itens-menu",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setTotalItensMenu(response.data.totalItensMenu); // ajuste de acordo com a estrutura da sua resposta da API
-      } catch (error) {
-        console.error("Erro ao buscar itens do menu:", error.message);
+        console.error("Erro ao buscar dados do dashboard", error);
       }
     };
 
     if (idFuncionario) {
       fetchFuncionarioData();
-      fetchRelatorioDiario();
-      fetchMesasDisponiveis();
-      fetchItensMenu();
+      fetchDadosVendas();
+      fetchDashboardData();
     }
   }, [idFuncionario]);
 
@@ -134,7 +119,7 @@ export default function Home({ navigation, route }) {
           <Text style={styles.text}>Seja bem vindo {nomeFuncionario}</Text>
           <Text style={styles.Title}>Home</Text>
 
-          {/* dados funcionarios */}
+          {/* dados funcionario */}
           <View
             style={{
               flex: 1,
@@ -145,12 +130,51 @@ export default function Home({ navigation, route }) {
             <View style={styles.caixa}>
               <View style={styles.textoContainer}>
                 <Text style={styles.textoNumericoPrimario}>
-                  R${relatorioDiario.totalFaturado || 0}
+                  R${dadosVendas.totalFaturado || 0}
                 </Text>
-                <Text style={styles.textoTituloPrimario}>Relatório diário</Text>
+                <Text style={styles.textoTituloPrimario}>Total Faturado</Text>
               </View>
               <Image
                 source={require("../../../assets/money.png")}
+                style={styles.imagem}
+              />
+            </View>
+
+            <View style={styles.caixa}>
+              <View style={styles.textoContainer}>
+                <Text style={styles.textoNumericoPrimario}>
+                  R${dadosVendas.totalVendido || 0}
+                </Text>
+                <Text style={styles.textoTituloPrimario}>Total Vendido</Text>
+              </View>
+              <Image
+                source={require("../../../assets/grafico.png")}
+                style={styles.imagem}
+              />
+            </View>
+
+            <View style={styles.caixa}>
+              <View style={styles.textoContainer}>
+                <Text style={styles.textoNumericoPrimario}>
+                  {dadosVendas.numPedidos || 0}
+                </Text>
+                <Text style={styles.textoTituloPrimario}>Número de Pedidos</Text>
+              </View>
+              <Image
+                source={require("../../../assets/produtos.png")}
+                style={styles.imagem}
+              />
+            </View>
+
+            <View style={styles.caixa}>
+              <View style={styles.textoContainer}>
+                <Text style={styles.textoNumericoPrimario}>
+                  {dadosVendas.numMesasAtendidas || 0}
+                </Text>
+                <Text style={styles.textoTituloPrimario}>Mesas Atendidas</Text>
+              </View>
+              <Image
+                source={require("../../../assets/mesaAtendida.png")}
                 style={styles.imagem}
               />
             </View>
@@ -163,7 +187,9 @@ export default function Home({ navigation, route }) {
                   style={styles.imagem}
                 />
                 <View style={styles.textoContainer}>
-                  <Text style={styles.textoNumerico}>{mesasDisponiveis}</Text>
+                  <Text style={styles.textoNumerico}>
+                    {totalMesasDisponiveis}
+                  </Text>
                   <Text style={styles.textoTitulo}>Mesas disponíveis</Text>
                 </View>
               </View>
@@ -185,7 +211,7 @@ export default function Home({ navigation, route }) {
                   style={styles.imagem}
                 />
                 <View style={styles.textoContainer}>
-                  <Text style={styles.textoNumerico}>{totalItensMenu}</Text>
+                  <Text style={styles.textoNumerico}>{totalPratos}</Text>
                   <Text style={styles.textoTitulo}>Itens no menu</Text>
                 </View>
               </View>
@@ -212,6 +238,7 @@ const styles = StyleSheet.create({
   // textoContainer: {
   //   marginRight: 'auto', // Isso empurra o texto para a esquerda e a imagem para a direita
   // },
+
   textoNumericoPrimario:{
     fontSize: 33,
     marginBottom: 5,
@@ -219,16 +246,14 @@ const styles = StyleSheet.create({
 
   textoTituloPrimario:{
     fontSize: 15,
-    width: 110,
-    color: "#000"
+    width: 150,
   },
-  
+
   textoNumerico: {
     fontSize: 33,
     marginBottom: 5,
     color: "#fff"
   },
-
   textoTitulo: {
     fontSize: 15,
     width: 90,
