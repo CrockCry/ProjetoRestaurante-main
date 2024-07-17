@@ -51,7 +51,7 @@ export default function Login({ navigation }) {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require("../../../assets/background.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%"}}>
+        source={require("../../../assets/background1.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}>
         
         <Image style={styles.imgLogo} source={require("../../../assets/logo.png")}/>
         <Text style={styles.text}>Bem-vindo</Text>

@@ -13,19 +13,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function Home({ navigation, route }) {
   const { idFuncionario } = route.params || {};
 
-  console.log("Cód Funcionario: ", idFuncionario);
-  console.log(route.params);
-
   const [nomeFuncionario, setNomeFuncionario] = useState("");
   const [cargoFuncionario, setCargoFuncionario] = useState("");
   const [relatorioDiario, setRelatorioDiario] = useState({});
   const [mesasDisponiveis, setMesasDisponiveis] = useState(0);
-  const [itensMenu, setItensMenu] = useState(0);
+  const [totalItensMenu, setTotalItensMenu] = useState(0);
 
   useEffect(() => {
     const fetchFuncionarioData = async () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
+        if (!token) throw new Error("Token de autenticação não encontrado.");
         const resposta = await axios.get(
           `http://127.0.0.1:8000/api/funcionario/${idFuncionario}`,
           {
@@ -36,17 +34,17 @@ export default function Home({ navigation, route }) {
         );
         setNomeFuncionario(resposta.data.nomeFuncionario);
         setCargoFuncionario(resposta.data.cargo);
-        console.log(resposta.data);
       } catch (error) {
-        console.error("Erro ao buscar dados do funcionário", error);
+        console.error("Erro ao buscar dados do funcionário:", error.message);
       }
     };
 
     const fetchRelatorioDiario = async () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
+        if (!token) throw new Error("Token de autenticação não encontrado.");
         const resposta = await axios.get(
-          `http://127.0.0.1:8000/api/funcionario/relatorioDiario/${idFuncionario}`,
+          `http://127.0.0.1:8000/api/funcionario/relatorioDiario`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -55,36 +53,43 @@ export default function Home({ navigation, route }) {
         );
         setRelatorioDiario(resposta.data);
       } catch (error) {
-        console.error("Erro ao buscar relatório diário", error);
+        console.error("Erro ao buscar relatório diário:", error.message);
       }
     };
 
     const fetchMesasDisponiveis = async () => {
       try {
-        const response = await fetch(
-          "http://seu-servidor/api/mesas/disponiveis"
-        );
-        const data = await response.json();
-        setMesasDisponiveis(data.mesasDisponiveis);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchItensMenu = async () => {
-      try {
         const token = await AsyncStorage.getItem("userToken");
-        const resposta = await axios.get(
-          `http://127.0.0.1:8000/api/itensMenu`,
+        if (!token) throw new Error("Token de autenticação não encontrado.");
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/mesa/disponiveis",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        setItensMenu(resposta.data.itensMenu);
+        setMesasDisponiveis(response.data.mesasDisponiveis);
       } catch (error) {
-        console.error("Erro ao buscar itens do menu", error);
+        console.error("Erro ao buscar mesas disponíveis:", error.message);
+      }
+    };
+
+    const fetchItensMenu = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        if (!token) throw new Error("Token de autenticação não encontrado.");
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/cardapio/itens-menu",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setTotalItensMenu(response.data.totalItensMenu); // ajuste de acordo com a estrutura da sua resposta da API
+      } catch (error) {
+        console.error("Erro ao buscar itens do menu:", error.message);
       }
     };
 
@@ -123,12 +128,12 @@ export default function Home({ navigation, route }) {
       </View>
 
       <ImageBackground
-        source={require("../../../assets/background.png")}
+        source={require("../../../assets/background1.png")}
         style={{
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          width: "100%",
+          width: "100vh",
         }}
       >
         <ScrollView>
@@ -145,13 +150,13 @@ export default function Home({ navigation, route }) {
           >
             <View style={styles.caixa}>
               <View style={styles.textoContainer}>
-                <Text style={styles.textoNumerico}>
+                <Text style={styles.textoNumericoPrimario}>
                   R${relatorioDiario.totalFaturado || 0}
                 </Text>
-                <Text style={styles.textoTitulo}>Relatório diário</Text>
+                <Text style={styles.textoTituloPrimario}>Relatório diário</Text>
               </View>
               <Image
-                source={require("../../../assets/perfil.png")}
+                source={require("../../../assets/money.png")}
                 style={styles.imagem}
               />
             </View>
@@ -160,7 +165,7 @@ export default function Home({ navigation, route }) {
             <View style={{ flexDirection: "row" }}>
               <View style={styles.caixaMenor}>
                 <Image
-                  source={require("../../../assets/perfil.png")}
+                  source={require("../../../assets/mesa.png")}
                   style={styles.imagem}
                 />
                 <View style={styles.textoContainer}>
@@ -182,11 +187,11 @@ export default function Home({ navigation, route }) {
                 }}
               >
                 <Image
-                  source={require("../../../assets/perfil.png")}
+                  source={require("../../../assets/menu.png")}
                   style={styles.imagem}
                 />
                 <View style={styles.textoContainer}>
-                  <Text style={styles.textoNumerico}>{itensMenu}</Text>
+                  <Text style={styles.textoNumerico}>{totalItensMenu}</Text>
                   <Text style={styles.textoTitulo}>Itens no menu</Text>
                 </View>
               </View>
@@ -213,13 +218,27 @@ const styles = StyleSheet.create({
   // textoContainer: {
   //   marginRight: 'auto', // Isso empurra o texto para a esquerda e a imagem para a direita
   // },
-  textoNumerico: {
+  textoNumericoPrimario:{
     fontSize: 33,
     marginBottom: 5,
   },
+
+  textoTituloPrimario:{
+    fontSize: 15,
+    width: 110,
+    color: "#000"
+  },
+  
+  textoNumerico: {
+    fontSize: 33,
+    marginBottom: 5,
+    color: "#fff"
+  },
+
   textoTitulo: {
     fontSize: 15,
     width: 90,
+    color: "#fff"
   },
   imagem: {
     width: 50, // Ajuste conforme necessário
