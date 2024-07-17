@@ -16,15 +16,38 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Perfil({ navigation }) {
+  const [nomeFuncionario, setNomeFuncionario] = useState("");
+  const [cargoFuncionario, setCargoFuncionario] = useState("");
   const [mesas, setMesas] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalEditVisible, setModalEditVisible] = useState(false);
   const [selectedMesa, setSelectedMesa] = useState(null);
   const [pessoasSentadas, setPessoasSentadas] = useState(0);
+  
 
   useEffect(() => {
     fetchMesas();
   }, []);
+  
+  const fetchFuncionarioData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) throw new Error("Token de autenticação não encontrado.");
+      const resposta = await axios.get(
+        `http://127.0.0.1:8000/api/funcionario/${idFuncionario}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setNomeFuncionario(resposta.data.nomeFuncionario);
+      setCargoFuncionario(resposta.data.cargo);
+    } catch (error) {
+      console.error("Erro ao buscar dados do funcionário:", error.message);
+    }
+  };
+
 
   const fetchMesas = async () => {
     try {
@@ -259,18 +282,16 @@ export default function Perfil({ navigation }) {
           source={require("../../../assets/perfil.png")}
           style={{ width: 50, height: 50 }}
         />
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>Usuario</Text>
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>Função</Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>
+          {nomeFuncionario}
+        </Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>
+          {cargoFuncionario}
+        </Text>
       </View>
 
       <ImageBackground
-        source={require("../../../assets/background.png")}
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-        }}
+        source={require("../../../assets/background2.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}
       >
         <ScrollView>
           <View
@@ -280,7 +301,7 @@ export default function Perfil({ navigation }) {
               justifyContent: "space-around",
             }}
           >
-            <Text style={styles.text}>Seja bem vindo Usuario</Text>
+            <Text style={styles.text}>Seja bem vindo {nomeFuncionario}</Text>
             <Text style={styles.Title}>Mesas</Text>
 
             <View style={styles.cardContainer}>

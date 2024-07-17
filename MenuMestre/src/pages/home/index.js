@@ -128,13 +128,7 @@ export default function Home({ navigation, route }) {
       </View>
 
       <ImageBackground
-        source={require("../../../assets/background1.png")}
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100vh",
-        }}
+        source={require("../../../assets/background2.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}
       >
         <ScrollView>
           <Text style={styles.text}>Seja bem vindo {nomeFuncionario}</Text>

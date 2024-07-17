@@ -4,7 +4,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, TextInput, ImageBackgr
 export default function Senha() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#9bc53d' }}>
-      <ImageBackground source={require('../../../assets/background.png')} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+      <ImageBackground source={require("../../../assets/background2.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}>
         <Text style={styles.text}>Recuperação de Senha</Text>
         <Image style={styles.imgLogo} source={require('../../../assets/logo.png')} />
 

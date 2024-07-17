@@ -18,17 +18,40 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 export default function Menu({ navigation }) {
-
+  const [nomeFuncionario, setNomeFuncionario] = useState("");
+  const [cargoFuncionario, setCargoFuncionario] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalDescriptionVisible, setModalDescriptionVisible] = useState(false);
   const [dishName, setDishName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [imageUri, setImageUri] = useState(null);
   const [products, setProducts] = useState([]);
+  const [currentProduct, setCurrentProduct] = useState(null);
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const fetchFuncionarioData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) throw new Error("Token de autenticação não encontrado.");
+      const resposta = await axios.get(
+        `http://127.0.0.1:8000/api/funcionario/${idFuncionario}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setNomeFuncionario(resposta.data.nomeFuncionario);
+      setCargoFuncionario(resposta.data.cargo);
+    } catch (error) {
+      console.error("Erro ao buscar dados do funcionário:", error.message);
+    }
+  };
+
 
   // Função para buscar produtos da API
   const fetchProducts = async () => {
@@ -47,7 +70,6 @@ export default function Menu({ navigation }) {
       if (!response.ok) {
         throw new Error(`Erro ao buscar produtos: ${response.statusText}`);
       }
-      console.log("Resposta da API:", response.data);
       const data = await response.json();
       setProducts(data);
     } catch (error) {
@@ -73,6 +95,11 @@ export default function Menu({ navigation }) {
     });
   };
 
+  const showDescriptionModal = (product) => {
+    setCurrentProduct(product);
+    setModalDescriptionVisible(true);
+  };
+
   return (
     <SafeAreaView
       style={{ flex: 1, alignItems: "center", justifyContent: "space-around" }}
@@ -91,18 +118,17 @@ export default function Menu({ navigation }) {
           source={require("../../../assets/perfil.png")}
           style={{ width: 50, height: 50 }}
         />
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>Usuario</Text>
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>Função</Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>
+          {nomeFuncionario}
+        </Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>
+          {cargoFuncionario}
+        </Text>
       </View>
 
       <ImageBackground
-        source={require("../../../assets/background.png")}
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-        }}
+        source={require("../../../assets/background2.png")} 
+        style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}
       >
         <ScrollView>
           <View
@@ -112,7 +138,7 @@ export default function Menu({ navigation }) {
               justifyContent: "space-around",
             }}
           >
-            <Text style={styles.text}>Seja bem vindo Usuario</Text>
+            <Text style={styles.text}>Seja bem vindo {nomeFuncionario}</Text>
             <Text style={styles.Title}>Menu</Text>
 
             <View style={styles.cardContainer}>
@@ -180,9 +206,7 @@ export default function Menu({ navigation }) {
                           style={[styles.button, styles.buttonAdd]}
                           onPress={async () => {
                             try {
-                              const token = await AsyncStorage.getItem(
-                                "userToken"
-                              );
+                              const token = await AsyncStorage.getItem("userToken");
                               const formData = new FormData();
                               formData.append("nomeProduto", dishName);
                               formData.append("descricaoProduto", description);
@@ -201,10 +225,10 @@ export default function Menu({ navigation }) {
                                 method: "POST",
                                 headers: {
                                   Authorization: `Bearer ${token}`,
-                                  "Content-Type": "application/json", // Adicione o token de autenticação
-                                  },
-                                }
-                              );
+                                  "Content-Type": "multipart/form-data", // Corrigido para multipart/form-data
+                                },
+                                body: formData,
+                              });
                               fetchProducts(); // Atualiza a lista de produtos
                               setModalVisible(!modalVisible);
                               setDishName("");
@@ -222,6 +246,7 @@ export default function Menu({ navigation }) {
                     </View>
                   </View>
                 </Modal>
+
                 <Pressable
                   style={styles.addContent}
                   onPress={() => setModalVisible(true)}
@@ -257,17 +282,24 @@ export default function Menu({ navigation }) {
                       <Text style={styles.foodTitle}>
                         {product.nomeProduto}
                       </Text>
-                      <Text style={styles.foodDescription}>
+                      <Text
+                        style={styles.foodDescription}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                      >
                         {product.descricaoProduto}
                       </Text>
                       <Text style={styles.foodPrice}>
                         R$ {Number(product.valorProduto).toFixed(2)}
                       </Text>{" "}
                       {/* Garantindo que valorProduto é um número */}
+                      <TouchableOpacity
+                        style={styles.editButton}
+                        onPress={() => showDescriptionModal(product)}
+                      >
+                        <Text style={styles.editButtonText}>Editar</Text>
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity style={styles.editButton}>
-                      <Text style={styles.editButtonText}>Editar</Text>
-                    </TouchableOpacity>
                   </View>
                 ))
               ) : (
@@ -277,84 +309,38 @@ export default function Menu({ navigation }) {
           </View>
         </ScrollView>
       </ImageBackground>
+
+      {/* Modal para exibir a descrição completa do produto */}
+      {currentProduct && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalDescriptionVisible}
+          onRequestClose={() => {
+            setModalDescriptionVisible(!modalDescriptionVisible);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalTitle}>{currentProduct.nomeProduto}</Text>
+              <Text style={styles.modalDescription}>
+                {currentProduct.descricaoProduto}
+              </Text>
+              <Pressable
+                style={styles.button}
+                onPress={() => setModalDescriptionVisible(!modalDescriptionVisible)}
+              >
+                <Text style={styles.buttonText}>Fechar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: 300,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-  },
-  modalImage: {
-    width: 80,
-    height: 80,
-    marginBottom: 10,
-  },
-  imageButton: {
-    marginBottom: 20,
-  },
-  imageButtonText: {
-    color: "#2196F3",
-    fontSize: 14,
-  },
-  input: {
-    height: 40,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    width: "100%",
-    paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  textArea: {
-    height: 80,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  button: {
-    borderRadius: 5,
-    padding: 10,
-    elevation: 2,
-    width: "48%",
-  },
-  buttonCancel: {
-    backgroundColor: "#f44336",
-  },
-  buttonAdd: {
-    backgroundColor: "#2196F3",
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
 
+const styles = StyleSheet.create({
   text: {
     fontSize: 15,
     color: "#FFF",
@@ -370,86 +356,165 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 25,
   },
+  
   cardContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    width: "90%",
-  },
-
-  addCard: {
-    width: "48%", // Garante que duas caixas caibam na linha
-    height: 210,
-    backgroundColor: "#FFF",
-    borderRadius: 10,
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    width: "90%",
+  },
+  addCard: {
+    marginVertical: 20,
     borderWidth: 1,
-    borderColor: "#D3D3D3",
-    marginBottom: 10,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   addContent: {
+    flexDirection: "row",
     alignItems: "center",
+    padding: 10,
   },
   addIcon: {
-    width: 50,
-    height: 50,
+    width: 30,
+    height: 30,
+    marginRight: 10,
   },
   addText: {
-    marginTop: 10,
     fontSize: 16,
-    color: "#000",
+    fontWeight: "bold",
   },
   foodCard: {
-    width: "48%", // Garante que duas caixas caibam na linha
-    height: 210,
-    backgroundColor: "#FFF",
-    borderRadius: 10,
+    flexDirection: "row",
+    marginVertical: 10,
     borderWidth: 1,
-    borderColor: "#D3D3D3",
-    marginBottom: 10,
+    borderColor: "#ddd",
+    borderRadius: 10,
     overflow: "hidden",
+    backgroundColor: "#fff",
+    width: "100%",
   },
-
   foodImageContainer: {
-    alignItems: "center",
-    marginTop: 10,
+    flex: 1,
   },
-
   foodImage: {
-    borderRadius: 100,
-    width: 65,
-    height: 65,
+    width: "100%",
+    height: 100,
   },
   foodContent: {
+    flex: 2,
     padding: 10,
   },
   foodTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-    textAlign: "center",
+    marginBottom: 5,
   },
   foodDescription: {
     fontSize: 12,
     color: "#666",
     marginVertical: 5,
-    textAlign: "cemter",
+    textAlign: "center",
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxHeight: 40, // Ajuste a altura máxima se necessário
   },
-
   foodPrice: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-    textAlign: "right",
+    color: "#333",
+    marginVertical: 5,
   },
   editButton: {
-    backgroundColor: "#EEE",
-    padding: 5,
-    alignItems: "center",
-    justifyContent: "center",
+    marginTop: 10,
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
   },
   editButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  modalDescription: {
     fontSize: 14,
-    color: "#000",
+    color: "#333",
+    marginBottom: 20,
+  },
+  button: {
+    borderRadius: 5,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonAdd: {
+    backgroundColor: "#007BFF",
+  },
+  buttonCancel: {
+    backgroundColor: "#6c757d",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  input: {
+    height: 40,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    width: "100%",
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: "top",
+  },
+  modalImage: {
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+  },
+  imageButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  imageButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
   },
 });

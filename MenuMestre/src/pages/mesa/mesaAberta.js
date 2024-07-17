@@ -111,13 +111,7 @@ export default function MesaAberta({ route, navigation }) {
       </View>
 
       <ImageBackground
-        source={require("../../../assets/background.png")}
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-        }}
+        source={require("../../../assets/background2.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}
       >
          <Text style={styles.header}>Produtos a mesa</Text>
             <View style={styles.card}>
