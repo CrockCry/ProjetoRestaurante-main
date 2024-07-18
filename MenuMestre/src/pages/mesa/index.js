@@ -23,12 +23,11 @@ export default function Perfil({ navigation }) {
   const [modalEditVisible, setModalEditVisible] = useState(false);
   const [selectedMesa, setSelectedMesa] = useState(null);
   const [pessoasSentadas, setPessoasSentadas] = useState(0);
-  
 
   useEffect(() => {
     fetchMesas();
   }, []);
-  
+
   const fetchFuncionarioData = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -48,7 +47,6 @@ export default function Perfil({ navigation }) {
     }
   };
 
-
   const fetchMesas = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -62,9 +60,6 @@ export default function Perfil({ navigation }) {
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar mesas: ${response.statusText}`);
-      }
 
       const data = await response.json();
       setMesas(data);
@@ -76,51 +71,51 @@ export default function Perfil({ navigation }) {
     return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar
   };
 
-    const handleEditarMesa = async (mesa) => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        if (!token) {
-          throw new Error("Token de autenticação não encontrado.");
-        }
-
-        const body = {
-          status: "ocupada",
-          pessoas_sentadas: mesa.pessoas_sentadas || 0, // Defina um valor padrão
-        };
-
-        console.log("Dados enviados na requisição:", body);
-
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/mesa/${mesa.id}`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          }
-        );
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          console.error("Erro na resposta:", responseData);
-          console.log("Dados enviados:", body);
-          throw new Error(
-            `Erro ao atualizar status da mesa: ${JSON.stringify(
-              responseData.error
-            )}`
-          );
-        }
-
-        setSelectedMesa(mesa);
-        setModalEditVisible(true);
-        console.log("Mesa selecionada para edição:", mesa);
-      } catch (error) {
-        console.error("Erro ao atualizar status da mesa:", error);
+  const handleEditarMesa = async (mesa) => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
       }
-    };
+
+      const body = {
+        status: "ocupada",
+        pessoas_sentadas: mesa.pessoas_sentadas || 0, // Defina um valor padrão
+      };
+
+      console.log("Dados enviados na requisição:", body);
+
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/mesa/${mesa.id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        console.error("Erro na resposta:", responseData);
+        console.log("Dados enviados:", body);
+        throw new Error(
+          `Erro ao atualizar status da mesa: ${JSON.stringify(
+            responseData.error
+          )}`
+        );
+      }
+
+      setSelectedMesa(mesa);
+      setModalEditVisible(true);
+      console.log("Mesa selecionada para edição:", mesa);
+    } catch (error) {
+      console.error("Erro ao atualizar status da mesa:", error);
+    }
+  };
 
   // numero de pessaos
   const [numPessoas, setNumPessoas] = useState(0);
@@ -282,16 +277,19 @@ export default function Perfil({ navigation }) {
           source={require("../../../assets/perfil.png")}
           style={{ width: 40, height: 40 }}
         />
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>
-          Joao Silva
-        </Text>
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>
-          Administrador
-        </Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>Joao Silva</Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>Administrador</Text>
       </View>
 
       <ImageBackground
-        source={require("../../../assets/background2.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}
+        source={require("../../../assets/background2.png")}
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+        }}
       >
         <ScrollView>
           <View
@@ -377,7 +375,9 @@ export default function Perfil({ navigation }) {
               {mesas.map((mesa) => (
                 <View key={mesa.id} style={styles.tableCard}>
                   <View style={styles.tableContent}>
-                    <Text style={styles.tableNumber}>Mesa {mesa.numero} - {mesa.status}</Text>
+                    <Text style={styles.tableNumber}>
+                      Mesa {mesa.numero} - {mesa.status}
+                    </Text>
                     <View style={{ flexDirection: "row" }}>
                       <Text style={styles.tableCapacity}>
                         Max: {mesa.capacidade}
