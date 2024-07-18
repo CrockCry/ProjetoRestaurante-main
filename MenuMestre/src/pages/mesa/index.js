@@ -270,7 +270,7 @@ export default function Perfil({ navigation }) {
     >
       <View
         style={{
-          backgroundColor: "grey",
+          backgroundColor: "#000",
           width: "100%",
           height: 60,
           justifyContent: "space-around",
@@ -280,13 +280,13 @@ export default function Perfil({ navigation }) {
       >
         <Image
           source={require("../../../assets/perfil.png")}
-          style={{ width: 50, height: 50 }}
+          style={{ width: 40, height: 40 }}
         />
         <Text style={{ color: "#fff", fontWeight: "bold" }}>
-          {nomeFuncionario}
+          Joao Silva
         </Text>
         <Text style={{ color: "#fff", fontWeight: "bold" }}>
-          {cargoFuncionario}
+          Administrador
         </Text>
       </View>
 
@@ -301,7 +301,7 @@ export default function Perfil({ navigation }) {
               justifyContent: "space-around",
             }}
           >
-            <Text style={styles.text}>Seja bem vindo {nomeFuncionario}</Text>
+            <Text style={styles.text}>Seja bem vindo Joao Silva</Text>
             <Text style={styles.Title}>Mesas</Text>
 
             <View style={styles.cardContainer}>

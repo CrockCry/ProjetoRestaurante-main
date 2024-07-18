@@ -92,7 +92,7 @@ export default function Home({ navigation, route }) {
     >
       <View
         style={{
-          backgroundColor: "grey",
+          backgroundColor: "#000",
           width: "100%",
           height: 60,
           justifyContent: "space-around",
@@ -102,7 +102,7 @@ export default function Home({ navigation, route }) {
       >
         <Image
           source={require("../../../assets/perfil.png")}
-          style={{ width: 50, height: 50 }}
+          style={{ width: 40, height: 40 }}
         />
         <Text style={{ color: "#fff", fontWeight: "bold" }}>
           {nomeFuncionario}
