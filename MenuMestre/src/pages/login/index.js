@@ -53,7 +53,7 @@ export default function Login({ navigation }) {
       <ImageBackground
         source={require("../../../assets/background2.png")} style={{ flex: 1, alignItems: "center", justifyContent: "center", width: "100%", height:"100%"}}>
         
-        <Image style={{ alignItems: "center", justifyContent: "center", width: "200px", height:"80px"}} source={require("../../../assets/MM-Logo-white.svg")}/>
+        <Image style={{ alignItems: "center", justifyContent: "center", width: "240px", height:"80px"}} source={require("../../../assets/MM-Logo-white.svg")}/>
         <Text style={styles.text}>Bem-vindo</Text>
 
         <TextInput
@@ -174,6 +174,51 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     textAlign: "center",
+    backgroundColor: "#fff",
+    width: 250,
+    padding: 15,
+    alignSelf: "center",
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.19,
+    shadowRadius: 20,
+    elevation: 10, // Ajuste a intensidade da sombra no Android
+    shadowColor: '#000', // Sombra adicional
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 6,
+  },
+
+  errorModalButtonText:{
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+    backgroundColor: "#3DA4FF",
+    width: 100,
+    padding: 15,
+    alignSelf: "center",
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.19,
+    shadowRadius: 20,
+    elevation: 10, // Ajuste a intensidade da sombra no Android
+    shadowColor: '#000', // Sombra adicional
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 6,
+    color: "#fff"
   },
 
   errorModalClose: {
