@@ -76,51 +76,51 @@ export default function Perfil({ navigation }) {
     return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar
   };
 
-  const handleEditarMesa = async (mesa) => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const body = {
-        status: "ocupada",
-        pessoas_sentadas: mesa.pessoas_sentadas || 0, // Defina um valor padrão
-      };
-
-      console.log("Dados enviados na requisição:", body);
-
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/mesa/${mesa.id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
+    const handleEditarMesa = async (mesa) => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        if (!token) {
+          throw new Error("Token de autenticação não encontrado.");
         }
-      );
 
-      const responseData = await response.json();
+        const body = {
+          status: "ocupada",
+          pessoas_sentadas: mesa.pessoas_sentadas || 0, // Defina um valor padrão
+        };
 
-      if (!response.ok) {
-        console.error("Erro na resposta:", responseData);
-        console.log("Dados enviados:", body);
-        throw new Error(
-          `Erro ao atualizar status da mesa: ${JSON.stringify(
-            responseData.error
-          )}`
+        console.log("Dados enviados na requisição:", body);
+
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/mesa/${mesa.id}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          }
         );
-      }
 
-      setSelectedMesa(mesa);
-      setModalEditVisible(true);
-      console.log("Mesa selecionada para edição:", mesa);
-    } catch (error) {
-      console.error("Erro ao atualizar status da mesa:", error);
-    }
-  };
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          console.error("Erro na resposta:", responseData);
+          console.log("Dados enviados:", body);
+          throw new Error(
+            `Erro ao atualizar status da mesa: ${JSON.stringify(
+              responseData.error
+            )}`
+          );
+        }
+
+        setSelectedMesa(mesa);
+        setModalEditVisible(true);
+        console.log("Mesa selecionada para edição:", mesa);
+      } catch (error) {
+        console.error("Erro ao atualizar status da mesa:", error);
+      }
+    };
 
   // numero de pessaos
   const [numPessoas, setNumPessoas] = useState(0);

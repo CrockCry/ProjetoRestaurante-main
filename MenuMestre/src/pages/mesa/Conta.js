@@ -1,8 +1,7 @@
-// src/pages/mesa/Conta.js
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Conta = ({ route, navigation }) => {
   const { mesaId } = route.params;  // Obtém o ID da mesa passado pela tela anterior
@@ -13,7 +12,7 @@ const Conta = ({ route, navigation }) => {
     // Função para buscar os produtos da mesa
     const fetchProdutos = async () => {
       try {
-        const response = await axios.get(`http://seu-endereco-api/mesa/${mesaId}/produtos`);
+        const response = await axios.get(`http://127.0.0.1:8000/mesa/${mesaId}/produtos`);
         setProdutos(response.data.produtos);
 
         // Calcula o total da mesa
@@ -30,12 +29,53 @@ const Conta = ({ route, navigation }) => {
   // Função para fechar a conta
   const fecharConta = async () => {
     try {
-      await axios.post(`http://seu-endereco-api/mesa/${mesaId}/fechar`, { pagar_taxa: true });  // Envia a requisição para fechar a mesa
-      navigation.goBack();  // Volta para a tela anterior após fechar a conta
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+  
+      const body = {
+        status: "disponivel",
+        pessoas_sentadas: 0, // Zera o número de pessoas sentadas
+      };
+  
+      console.log("Dados enviados na requisição:", body);
+  
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/mesa/${mesaId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
+  
+      const responseData = await response.json();
+  
+      if (!response.ok) {
+        console.error("Erro na resposta:", responseData);
+        console.log("Dados enviados:", body);
+        throw new Error(
+          `Erro ao atualizar status da mesa: ${JSON.stringify(
+            responseData.error
+          )}`
+        );
+      }
+  
+      // Atualiza o estado local da mesa
+      setProdutos([]);  // Limpa a lista de produtos
+      setTotal(0);      // Zera o total
+  
+      navigation.navigate('Mesa');  // Volta para a tela anterior após fechar a conta
+      console.log("Mesa atualizada com sucesso para fechamento.");
     } catch (error) {
-      console.error('Erro ao fechar a conta', error);
+      console.error("Erro ao fechar a conta:", error);
     }
   };
+  
 
   return (
     <View style={styles.container}>
