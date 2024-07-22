@@ -63,12 +63,12 @@ export default function Perfil({ navigation }) {
 
       const data = await response.json();
       setMesas(data);
-    } catch (error) {
+     } catch (error) {
       console.error("Erro ao buscar mesas:", error);
-    }
+     }
 
-    const intervalId = setInterval(fetchMesas, 5000);
-    return () => clearInterval(intervalId); // Limpa o intervalo ao desmontar
+    // const intervalId = setInterval(fetchMesas, 5000);
+    // return () => clearInterval(intervalId); // Limpa o intervalo
   };
 
   const handleEditarMesa = async (mesa) => {
@@ -80,7 +80,7 @@ export default function Perfil({ navigation }) {
 
       const body = {
         status: "ocupada",
-        pessoas_sentadas: mesa.pessoas_sentadas || 0, // Defina um valor padrão
+        pessoas_sentadas: mesa.pessoas_sentadas || 0, 
       };
 
       console.log("Dados enviados na requisição:", body);
